@@ -115,11 +115,6 @@
         </style>
     </head>
     <body>
-        <audio id="background-audio" autoplay loop>
-            <source src="audios/database.webm" type="audio/webm">
-            Your browser does not support the database song.
-        </audio>
-
         <div id="gif-container"></div>
         <div id="counter">You've been in the database for: <span id="timer">0:00</span></div>
 
@@ -193,7 +188,7 @@
             function hideWarningModal() {
                 warningModal.style.display = "none";
                 // Start playing audio, displaying gifs, and updating timer when the warning is acknowledged
-                const audio = new Audio("database.webm");
+                const audio = new Audio("audios/database.webm");
                 audio.loop = true;
                 audio.play();
                 displayGifs();
