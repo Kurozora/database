@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Kurozora — Living in the Database</title>
+
+        <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden;
+                font-family: Arial, sans-serif;
+                background: black;
+            }
+
+            #background-audio {
+                display: none;
+            }
+
+            #gif-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #counter {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: white;
+                font-size: 36px;
+                font-weight: bold;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                background-color: rgba(0, 0, 0, 0.5);
+                padding: 10px 20px;
+                border-radius: 10px;
+                z-index: 9999;
+            }
+
+            #dim-button {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                padding: 10px 20px;
+                background-color: #FF9300;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                z-index: 9999;
+            }
+
+            .overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.6);
+                z-index: 9998;
+                display: none;
+            }
+
+            .modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                z-index: 9999;
+                display: none;
+            }
+
+            .modal h2 {
+                margin-top: 0;
+            }
+
+            .modal button {
+                padding: 10px 20px;
+                background-color: #FF9300;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            #logo-container {
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 9999;
+            }
+
+            #logo-link {
+                text-decoration: none;
+            }
+
+            .gif {
+                position: absolute;
+                width: 300px;
+                height: 169px;
+                background-size: cover;
+                object-fit: cover;
+            }
+        </style>
+    </head>
+    <body>
+        <audio id="background-audio" autoplay loop>
+            <source src="database.webm" type="audio/webm">
+            Your browser does not support the database song.
+        </audio>
+
+        <div id="gif-container"></div>
+        <div id="counter">You've been in the database for: <span id="timer">0:00</span></div>
+
+        <button id="dim-button">Dim</button>
+        <div class="overlay"></div>
+
+        <div class="modal" id="warning-modal">
+            <h2>Seizure Warning</h2>
+            <p>This website contains flashing lights that may trigger seizures for people with photosensitive epilepsy. Please use the "Dim" button in the top-right corner before continuing.</p>
+            <button id="continue-button">Continue</button>
+        </div>
+
+        <div id="logo-container">
+            <a id="logo-link" href="https://kurozora.app" target="_blank">
+                <img src="images/static/icon/logo_gray.svg" alt="Kurozora Logo" width="36" height="36">
+            </a>
+        </div>
+
+        <script>
+            const gifs = ["images/1.gif", "images/2.gif", "images/3.gif", "images/4.gif", "images/5.gif"];
+            const gifContainer = document.getElementById("gif-container");
+            const counter = document.getElementById("timer");
+            const overlay = document.querySelector(".overlay");
+            const dimButton = document.getElementById("dim-button");
+            const warningModal = document.getElementById("warning-modal");
+            const continueButton = document.getElementById("continue-button");
+            let seconds = 0;
+            let isDimmed = false;
+
+            // Function to display gifs on the page
+            function displayGifs() {
+                const windowHeight = window.innerHeight;
+                const windowWidth = window.innerWidth;
+                const numGifs = Math.ceil(windowHeight / 169) * Math.ceil(windowWidth / 300);
+
+                for (let i = 0; i < numGifs; i++) {
+                    const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
+                    const gifElement = document.createElement("div");
+                    gifElement.classList.add("gif");
+                    gifElement.style.left = (i % Math.ceil(windowWidth / 300)) * 300 + "px";
+                    gifElement.style.top = Math.floor(i / Math.ceil(windowWidth / 300)) * 169 + "px";
+                    gifElement.style.backgroundImage = `url(${randomGif})`;
+                    gifContainer.appendChild(gifElement);
+                }
+            }
+
+            // Function to update the timer
+            function updateTimer() {
+                seconds++;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                counter.textContent = `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+            }
+
+            // Function to dim GIFs
+            function dimGifs() {
+                overlay.style.display = isDimmed ? "none" : "block";
+                isDimmed = !isDimmed;
+                dimButton.textContent = isDimmed ? "Undim" : "Dim";
+            }
+
+            // Event listener for dim button
+            dimButton.addEventListener("click", dimGifs);
+
+            // Function to show warning modal
+            function showWarningModal() {
+                warningModal.style.display = "block";
+            }
+
+            // Function to hide warning modal and start the page content
+            function hideWarningModal() {
+                warningModal.style.display = "none";
+                // Start playing audio, displaying gifs, and updating timer when the warning is acknowledged
+                const audio = new Audio("database.webm");
+                audio.loop = true;
+                audio.play();
+                displayGifs();
+                setInterval(updateTimer, 1000);
+            }
+
+            // Event listener for continue button
+            continueButton.addEventListener("click", hideWarningModal);
+
+            // Show warning modal when the page loads
+            window.onload = showWarningModal;
+        </script>
+    </body>
+</html>
